@@ -145,18 +145,24 @@ public class ExtractMethods {
                         "import excel PEC2_ST1.xlsx, sheet(\"Datos\") firstrow" + 
                         newline + newline;
                 
-                for(int i=2; i<=22; i++){
+                for(int i=2; i<=21; i++){
                     String p = ((i<10) ? "0"+Integer.toString(i) : Integer.toString(i));
-                    if (i!=7 && i!=9 && i!=21) {
+                    if (i!=4 && i!=9 && i!=11 && i!=20) {
                         c = c + "*Pregunta " + p + newline + form.getField("P"+p+"_B" ) + newline + newline;
                     }
-                    if (i==6) {
+                    if (i==8) {
                         c = c + "merge 1:1 Id using \"PEC2_ST1_A.dta\", nogenerate" + newline + 
-                                "testvars Sexo Edad AñosE MesesE DiasE EdadAMD, p(3 4 5 5 5 6) id(Id)" + newline + newline;
+                                "testvars Sexo FNc FRc FN FR Edad BajoPeso, p(3 5 5 6 6 7 8) id(Id)" + newline + newline;
                     }
-                    if (i==18) {
-                        c = c + "merge 1:1 Id using \"PEC2_ST1_B.dta\", nogenerate" + newline + 
-                                "testvars pGlasgow pPupilas pNeuro pPaFi pPaCO2 pPulmon pPAS pFC pCardio, p(10 11 12 13 14 15 16 17 18) id(Id)" + newline + newline;
+                    if (i==13) {
+                        c = c + "merge 1:1 Id using \"PEC2_ST1_B.dta\", nogenerate" + newline +
+                                "testvars pCardio APGAR, p(12 13) id(Id)" + newline + newline;
+                    }
+                    if (i==14) {
+                        c = c + "testvars APGARbajo, p(14) v(_APGARbajo0) id(Id)" + newline + newline;
+                    }
+                    if (i==17) {
+                        c = c + "testvars APGARbajo k GFR, p(15 16 17) id(Id)" + newline + newline;
                     }
                 }
                 reader.close();
@@ -233,29 +239,51 @@ public class ExtractMethods {
         double t = (System.currentTimeMillis() - time)/1000;
         JOptionPane.showMessageDialog(null,"Proceso finalizado (" +  String.format("%.1f", t) + " segs).");        
     }
+
+    public void getDatosPEC_ST(String dir, String cPeriodo) throws IOException {
+
+        String dni = dir.substring(dir.lastIndexOf("_")+1,dir.lastIndexOf(".pdf"));
+        String cCurso = dir.substring(dir.lastIndexOf("_")-3,dir.lastIndexOf("_"));
+        
+        PdfReader reader = new PdfReader(dir);
+        AcroFields form = reader.getAcroFields();
+        
+        List<String> names = new ArrayList<String>();
+        for (String key : form.getFields().keySet()) {
+            if (key.substring(0, 1).equalsIgnoreCase("P")) names.add(key);
+        }
+        Collections.sort(names);
+        
+        List<String> lines = new ArrayList<String>();
+        for (String name : names) {
+            String p = name.substring(1);
+            String v = form.getField(name);
+
+            if (v.length()<6) {
+                String c = "INSERT INTO PEC_respuestas (Periodo,Curso,DNI,Pregunta,respuesta) VALUES (" + "'" + cPeriodo + "', '" + cCurso + "', '" + dni + "', '" + p + "', '" + v + "');";
+                lines.add(c);
+            }
+        }
+        reader.close();
+        
+        Path fdata = Paths.get(dir.replace(".pdf",".txt"));
+        Files.write(fdata, lines, Charset.forName("UTF-8"));
+    }
     
-    public String getDatosPEC(String dir, boolean saveAccess, int nFields, int nExcept) throws IOException {
+    public String getDatosPEC(String dir, int nFields, int nExcept) throws IOException {
 
         String dni = dir.substring(dir.lastIndexOf("_")+1,dir.lastIndexOf(".pdf"));
         
         PdfReader reader = new PdfReader(dir);
         AcroFields form = reader.getAcroFields();
         
-        String c = "";
-        if (saveAccess) {
-            c = dni;
-        }
-        else {
-            //Header with identification data
-            c = "'" + form.getField("APE1") + "','" + form.getField("APE2") + "','" + 
-                form.getField("NOMBRE") + "','" + dni + "'" + 
-                ((form.getField("HONOR").equalsIgnoreCase("Yes")) ? ",1" : ",0");
-        }
+        //Header with identification data
+        String c = "'" + form.getField("APE1") + "','" + form.getField("APE2") + "','" + 
+            form.getField("NOMBRE") + "','" + dni + "'" + 
+            ((form.getField("HONOR").equalsIgnoreCase("Yes")) ? ",1" : ",0");
 
-        String sep = ";";
-        String del = "";
-        if (!saveAccess) sep = ",";
-        if (!saveAccess) del = "'";
+        String sep = ",";
+        String del = "'";
         for(int i=1; i<=nFields; i++){
             String p = ((i<10) ? "0"+Integer.toString(i) : Integer.toString(i));
             if (i!=nExcept) c = c + sep + del + form.getField("P"+p+"_A") + del;
@@ -264,12 +292,6 @@ public class ExtractMethods {
                                sep + del + form.getField("P"+p+"_C").replace(".",",") + del;
         }
         reader.close();
-
-        if (saveAccess) {
-            try( PrintWriter out = new PrintWriter(dir.replace(".pdf", ".txt")) ){
-                out.println( c );
-            }
-        }
         
         return c;
     }
@@ -294,7 +316,7 @@ public class ExtractMethods {
         List<String> lines = new ArrayList<String>();
         for (File file : listOfFiles) {
             if (file.isFile()) {
-                String c = this.getDatosPEC(file.getAbsolutePath(), false, nFields, nExcept);
+                String c = this.getDatosPEC(file.getAbsolutePath(), nFields, nExcept);
                 lines.add(c);
             }
         }

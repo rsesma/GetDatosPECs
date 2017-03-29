@@ -64,7 +64,7 @@ public class GetDatosPECs {
             else {
                 //ST special methods
                 if (type.equals("getPEC1")) extract.getNotaPEC1(dir);
-                if (type.equals("getPEC")) extract.getDatosPEC(dir,true,Integer.parseInt(args[2]),Integer.parseInt(args[3]));
+                if (type.equals("getPEC")) extract.getDatosPEC_ST(dir,args[2]);
                 if (type.equals("getST")) extract.getDatosST(dir,Integer.parseInt(args[2]),Integer.parseInt(args[3]));
                 
                 if (type.equals("entregahonorPEC1")) extract.getEntregaHonorPEC1(dir);
