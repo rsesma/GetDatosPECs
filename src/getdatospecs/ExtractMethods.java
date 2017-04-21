@@ -78,7 +78,7 @@ public class ExtractMethods {
                     }
                     //Header with identification data
                     String c = "'" + form.getField("APE1") + "','" + form.getField("APE2") + "','" + 
-                            form.getField("NOMBRE") + "','" + dni + "'" + 
+                            form.getField("NOMBRE") + "','" + dni + "'" +
                             ((form.getField("HONOR").equalsIgnoreCase("Yes")) ? ",1" : ",0");
                     
                     //Loop through the sorted fields and get the contents
@@ -204,28 +204,29 @@ public class ExtractMethods {
                 
                 String c = "**PEC : " + dni + newline +
                         "cd \"C:\\Users\\reed\\Desktop\\PECs\\ST2\"" + newline +
-                        "erase Seguimientos.dta" + newline +
+                        "erase Recaidas.dta" + newline +
+                        "erase Censal.dta" + newline +
                         "erase Temporal.dta" + newline +
-                        "import excel \"PEC1_ST2.xlsx\", sheet(\"Seguimientos\") firstrow" + 
+                        "import excel \"PEC1_ST2.xlsx\", sheet(\"Censal\") firstrow clear" + 
                         newline + newline;
                 
-                for(int i=2; i<=15; i++){
+                for(int i=2; i<=16; i++){
                     String p = ((i<10) ? "0"+Integer.toString(i) : Integer.toString(i));
-                    if (i<15) c = c + "*Pregunta " + p + newline + form.getField("P"+p+"_B" ) + newline + newline;
-                    if (i==15) c = c + "*Pregunta " + p + newline + "clear" + newline + form.getField("P"+p+"_B" ) + newline + newline;
-                    if (i==4) {
-                        c = c + "merge 1:1 Id FS using \"PEC1_ST2_A.dta\", nogenerate" + newline + 
-                                "testvars NSeg NBrote TBrote, p(3 3 4) id(Id FS)" + newline + 
+                    if (i<16) c = c + "*Pregunta " + p + newline + form.getField("P"+p+"_B" ) + newline + newline;
+                    if (i==16) c = c + "*Pregunta " + p + newline + "clear" + newline + form.getField("P"+p+"_B" ) + newline + newline;
+                    if (i==7) {
+                        c = c + "merge 1:1 IdPac FR using \"PEC1_ST2_A.dta\", nogenerate" + newline + 
+                                "testvars Num NRec DiasRec CambioGluc, p(6 6 7 7) id(IdPac FR)" + newline + 
                                 "drop _*" + newline + newline;
                     }
-                    if (i==7) {
-                        c = c + "merge 1:1 Id using \"PEC1_ST2_B.dta\", nogenerate" + newline + 
-                                "testvars MaxEDSS MinEDSS MedEDSS NTotBrotes, p(7 7 7 7) id(Id)" + newline + newline;
+                    if (i==9) {
+                        c = c + "merge 1:1 IdPac using \"PEC1_ST2_B.dta\", nogenerate" + newline + 
+                                "testvars RecMin RecMax RecMed, p(9 9 9) id(IdPac)" + newline + newline;
                     }
-                    if (i==12) {
-                        c = c + "merge 1:1 Id FS using \"PEC1_ST2_C.dta\", nogenerate" + newline + 
-                                "testvars Seg, p(12) id(Id FS)" + newline + 
-                                "drop _Seg" + newline + newline;
+                    if (i==14) {
+                        c = c + "merge 1:1 IdPac using \"PEC1_ST2_C.dta\", nogenerate" + newline + 
+                                "testvars DiasSeg Recaida, p(14 14) id(IdPac)" + newline + 
+                                "drop _*" + newline + newline;
                     }
                 }
                 reader.close();
@@ -257,7 +258,7 @@ public class ExtractMethods {
         List<String> lines = new ArrayList<String>();
         for (String name : names) {
             String p = name.substring(1);
-            String v = form.getField(name);
+            String v = form.getField(name).replace(".", ",");
 
             if (v.length()<6) {
                 String c = "INSERT INTO PEC_respuestas (Periodo,Curso,DNI,Pregunta,respuesta) VALUES (" + "'" + cPeriodo + "', '" + cCurso + "', '" + dni + "', '" + p + "', '" + v + "');";
