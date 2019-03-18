@@ -7,8 +7,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,6 +21,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
@@ -145,35 +148,32 @@ public class ExtractMethods {
                 AcroFields form = reader.getAcroFields();
                 
                 String c = "**PEC : " + dni + newline + 
-                        "cd \"C:\\Users\\reed\\Desktop\\PECs\\ST1\\PEC2\"" + newline +
-                        "import excel PEC2_ST1.xlsx, sheet(\"Datos\") firstrow" + 
+                        "cd \"Z:\\CorregirPECs\\ST1\\PEC2\"" + newline +
+                        "import excel PEC2_ST1.xlsx, sheet(\"Datos\") firstrow clear" + 
                         newline + newline;
                 
-                for(int i=2; i<=21; i++){
+                for(int i=2; i<=20; i++){
                     String p = ((i<10) ? "0"+Integer.toString(i) : Integer.toString(i));
-                    if (i!=4 && i!=9 && i!=11 && i!=20) {
+                    if (i!=7 && i!=9 && i!=11 && i!=19) {
                         c = c + "*Pregunta " + p + newline + form.getField("P"+p+"_B" ) + newline + newline;
                     }
                     if (i==8) {
-                        c = c + "merge 1:1 Id using \"PEC2_ST1_A.dta\", nogenerate" + newline + 
-                                "testvars Sexo FNc FRc FN FR Edad BajoPeso, p(3 5 5 6 6 7 8) id(Id)" + newline + newline;
+                        c = c + "merge 1:1 Id using \"A.dta\", nogenerate" + newline + 
+                                "testvars Sexo FN FR Edad LBW, p(4 5 5 6 8) id(Id)" + newline + newline;
                     }
-                    if (i==13) {
-                        c = c + "merge 1:1 Id using \"PEC2_ST1_B.dta\", nogenerate" + newline +
-                                "testvars pCardio APGAR, p(12 13) id(Id)" + newline + newline;
+                    if (i==10) {
+                        c = c + "merge 1:1 Id using \"B.dta\", nogenerate" + newline + newline;
                     }
-                    if (i==14) {
-                        c = c + "testvars APGARbajo, p(14) v(_APGARbajo0) id(Id)" + newline + newline;
-                    }
-                    if (i==17) {
-                        c = c + "testvars APGARbajo k GFR, p(15 16 17) id(Id)" + newline + newline;
+                    if (i==16) {
+                        c = c + "testvars DuraCat MEDT Bp Bm MEDB MED, p(12 13 14 14 15 16) id(Id)" + newline + newline;
                     }
                 }
                 reader.close();
                 
-                try( PrintWriter out = new PrintWriter(dir + "/sintaxis/" + dni + ".do") ){
-                    out.println( c );
-                }
+                OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File(dir + "/sintaxis/" + dni + ".do")), StandardCharsets.UTF_8);
+                writer.write(c, 0, c.length() );
+                writer.flush();
+                writer.close();                
             }
         }
         
@@ -207,37 +207,44 @@ public class ExtractMethods {
                 AcroFields form = reader.getAcroFields();
                 
                 String c = "**PEC : " + dni + newline +
-                        "cd \"C:\\Users\\reed\\Desktop\\PECs\\ST2\"" + newline +
-                        "erase Recaidas.dta" + newline +
-                        "erase Censal.dta" + newline +
-                        "erase Temporal.dta" + newline +
-                        "import excel \"PEC1_ST2.xlsx\", sheet(\"Censal\") firstrow clear" + 
+                        "cd \"C:\\CorregirPECs\\ST2\"" + newline +
+                        "capture erase Datos.dta" + newline +
+                        "capture erase Partos.dta" + newline +
+                        "capture erase Temporal.dta" + newline +
+                        "import excel \"PEC1_ST2.xlsx\", sheet(\"Datos\") firstrow clear" + 
                         newline + newline;
                 
-                for(int i=2; i<=16; i++){
+                int iLast = 15;
+                for(int i=2; i<=iLast; i++){
                     String p = ((i<10) ? "0"+Integer.toString(i) : Integer.toString(i));
-                    if (i<16) c = c + "*Pregunta " + p + newline + form.getField("P"+p+"_B" ) + newline + newline;
-                    if (i==16) c = c + "*Pregunta " + p + newline + "clear" + newline + form.getField("P"+p+"_B" ) + newline + newline;
-                    if (i==7) {
-                        c = c + "merge 1:1 IdPac FR using \"PEC1_ST2_A.dta\", nogenerate" + newline + 
-                                "testvars Num NRec DiasRec CambioGluc, p(6 6 7 7) id(IdPac FR)" + newline + 
-                                "drop _*" + newline + newline;
+                    if (i<iLast) c = c + "*Pregunta " + p + newline + form.getField("P"+p+"_B" ) + newline + newline;
+                    if (i==iLast) c = c + "*Pregunta " + p + newline + "clear" + newline + form.getField("P"+p+"_B" ) + newline + newline;
+                    if (i==3) {
+                        c = c + "merge 1:1 IdVaca FE using \"A.dta\", nogenerate" + newline + 
+                                "testvars Parto, p(3) id(IdVaca FE)" + newline + 
+                                "clear" + newline + newline;
                     }
+                    if (i==4) c = c + "merge 1:1 IdVaca FE using \"B.dta\", nogenerate" + newline + newline;
+                    if (i==5) c = c + "testvars Ciclo, p(5) v(_Ciclo1) id(IdVaca FE)" + newline + newline;
+                    if (i==6) c = c + "testvars Ciclo, p(6) v(_Ciclo2) id(IdVaca FE)" + newline + newline;
+                    if (i==7) c = c + "testvars Ciclo, p(7) v(_Ciclo3) id(IdVaca FE)" + newline + newline;
+                    if (i==8) c = c + "testvars Insem TI, p(8 8) id(IdVaca Ciclo)" + newline + "drop _*" + newline + "save Datos, replace" + newline + newline;
                     if (i==9) {
-                        c = c + "merge 1:1 IdPac using \"PEC1_ST2_B.dta\", nogenerate" + newline + 
-                                "testvars RecMin RecMax RecMed, p(9 9 9) id(IdPac)" + newline + newline;
+                        c = c + "merge 1:1 IdVaca Ciclo using \"C.dta\", nogenerate" + newline + 
+                                "testvars NI MedTI MinTI MaxTI, p(9 9 9 9) id(IdVaca Ciclo)" + newline +
+                                "clear" + newline + newline;
                     }
                     if (i==14) {
-                        c = c + "merge 1:1 IdPac using \"PEC1_ST2_C.dta\", nogenerate" + newline + 
-                                "testvars DiasSeg Recaida, p(14 14) id(IdPac)" + newline + 
-                                "drop _*" + newline + newline;
+                        c = c + "merge 1:1 IdVaca Ciclo using \"D.dta\", nogenerate" + newline + 
+                                "testvars Parto, p(14) id(IdVaca Ciclo)" + newline + newline;
                     }
                 }
                 reader.close();
-                
-                try( PrintWriter out = new PrintWriter(dir + "/sintaxis/" + dni + ".do") ){
-                    out.println( c );
-                }
+
+                OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File(dir + "/sintaxis/" + dni + ".do")), StandardCharsets.UTF_8);
+                writer.write(c, 0, c.length() );
+                writer.flush();
+                writer.close();
             }
         }
         
@@ -456,8 +463,8 @@ public class ExtractMethods {
                 c = c + ";" + ((honor) ? "1" : "0");
                 lines.add(c);
             }
-
         }
+        
         //write pec data file
         Path fdata = Paths.get(dir + "/honor_entrega.txt");
         Files.write(fdata, lines, Charset.forName("UTF-8"));
@@ -506,7 +513,7 @@ public class ExtractMethods {
                     String ext = n.substring(n.lastIndexOf(".")+1);     //file extension
                     
                     //there's a database
-                    if (ext.equals("mdb") || ext.equals("accdb")) {
+                    if (ext.equals("mdb") || ext.equals("accdb") || ext.equals("odb")) {
                         foundMdb = true;
                     }
                     
@@ -553,8 +560,114 @@ public class ExtractMethods {
         }
     }
 
+    public void getHonorIO(String dir) throws IOException {  
+        
+        //Get the folders of the original directory dir
+        File orig = new File(dir);
+        String[] directories = orig.list(new FilenameFilter() {
+            public boolean accept(File current, String name) {
+                return new File(current, name).isDirectory();
+            }
+        });
+        
+        //Loop thorugh the folders
+        List<String> lines = new ArrayList<String>();
+        for (String f : directories) {
+            String dni = f.substring(f.lastIndexOf("_")+1);     	//student's dni
+            String c = dni + ";";
+            
+            //Get list of files for the student and confirm PEC1 elements
+            boolean honor = false;
+            File folder = new File(dir + "/" + f);
+            File[] listOfFiles = folder.listFiles();
+            for (int i = 0; i < listOfFiles.length; i++) {
+                if (listOfFiles[i].isFile()) {
+                    String n = listOfFiles[i].getName();
+                    String ext = n.substring(n.lastIndexOf(".")+1);     //file extension
+                    
+                    //there's a pdf form file
+                    if (ext.equals("pdf") && n.startsWith("PEC_")) {
+                        //open pdf file
+                        String pdf = listOfFiles[i].getAbsolutePath();
+                        PdfReader reader = new PdfReader(pdf);
+                        AcroFields form = reader.getAcroFields();
+                        if (form.getFields().size()>0) {
+                            //get honor field
+                            honor = (form.getField("HONOR").equalsIgnoreCase("yes"));
+                        }
+                    }
+                }
+            }
+            lines.add(c + ((honor) ? "1" : "0"));
+        }
+
+        Path fdata = Paths.get(dir + "/honor.txt");
+        Files.write(fdata, lines, Charset.forName("UTF-8"));
+        
+        JOptionPane.showMessageDialog(null,"Proceso finalizado");
+    }
+    
+    public void loadAccess(String dir) throws IOException {
+/*    	
+    	System.out.println(dir);
+    	
+        try {
+			Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");						// loading Driver			
+			Connection conn = DriverManager.getConnection("jdbc:ucanaccess://" + db);	// establish connection
+			Statement s = conn.createStatement();
+
+			String database = "jdbc:odbc:Driver={Microsoft Access Driver (*.accdb)};DBQ=C:\\Users\\rsesm\\OneDrive\\Escritorio\\db.accdb;";
+            Connection conn = DriverManager.getConnection(database, "", "");
+            Statement s = conn.createStatement();
+            
+            // create a table
+            String tableName = "myTable" + String.valueOf((int)(Math.random() * 1000.0));
+            String createTable = "CREATE TABLE " + tableName + 
+                                 " (id Integer, name Text(32))";
+            System.out.println(createTable);
+            s.execute(createTable); 
+
+            // close and cleanup
+            s.close();
+            conn.close();
+        } catch(Exception e) {
+            System.out.println(e.getMessage());
+        }
+        
+        System.out.println("Proceso finalizado");*/
+    }
+    
     public void test(String dir) throws IOException {
-        File folder = new File(dir);
+    	PdfReader reader = new PdfReader("C:/Users/rsesm/OneDrive/Escritorio/Export data PB0 2018-19/PEC_PB0_DNI.pdf");
+        AcroFields form = reader.getAcroFields();
+        List<String> lines = new ArrayList<String>();
+        lines.add("preg;pag;left;top");
+        for (String key : form.getFields().keySet()) {
+        	if (key.substring(0,1).equalsIgnoreCase("P")) {
+                List<AcroFields.FieldPosition> positions = form.getFieldPositions(key);
+                Rectangle rect = positions.get(0).position; // In points:
+                float left   = rect.getLeft();
+                float bTop   = rect.getTop();
+                //float width  = rect.getWidth();
+                //float height = rect.getHeight();
+
+                int page = positions.get(0).page;
+                Rectangle pageSize = reader.getPageSize(page);
+                float pageHeight = pageSize.getTop();
+                float top = pageHeight - bTop;
+
+                lines.add(key + ";" + Integer.toString(page) + ";" + 
+                		Double.toString(Math.floor(left)).replace(".0", "") + ";" + 
+                		Double.toString(Math.floor(top)).replace(".0", ""));
+        	}
+        }
+        
+        Path f = Paths.get("C:/Users/rsesm/OneDrive/Escritorio/Export data PB0 2018-19/PEC_PB0_pos.txt");
+        Files.write(f, lines, Charset.forName("UTF-8"));
+
+        System.out.println("Proceso acabado");        
+        
+        /*File folder = new File(dir);
         FilenameFilter pdfFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 String lowercaseName = name.toLowerCase();
@@ -580,6 +693,6 @@ public class ExtractMethods {
                     System.out.println(key);
                 }
             }
-        }
+        }*/
     }
 }

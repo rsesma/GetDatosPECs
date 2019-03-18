@@ -69,12 +69,15 @@ public class GetDatosPECs {
                 
                 if (type.equals("entregahonorPEC1")) extract.getEntregaHonorPEC1(dir);
                 if (type.equals("entregahonor")) extract.getEntregaHonor(dir,args[2],args[3]);
+                if (type.equals("honorIO")) extract.getHonorIO(dir);
                 
                 if (type.equals("sintaxisST1")) extract.getSintaxisST1(dir);
                 if (type.equals("sintaxisST2")) extract.getSintaxisST2(dir);
                 
                 if (type.equals("rename")) extract.renameFormFields(dir);
                 if (type.equals("test")) extract.test(dir);
+                
+                if (type.equals("loadAccess")) extract.loadAccess(dir);
             }
         }
 

@@ -2,6 +2,11 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="src"/>
+<<<<<<< HEAD
 	<classpathentry kind="lib" path="C:/Users/tempo/OneDrive - Universitat Autònoma de Barcelona/Varios/jar/itextpdf-5.5.10.jar"/>
+=======
+	<classpathentry kind="lib" path="C:/Users/rsesm/OneDrive/Documentos/jar/itextpdf-5.5.10.jar"/>
+	<classpathentry kind="lib" path="C:/Users/rsesm/OneDrive - Universitat Autònoma de Barcelona/Varios/jar/ucanaccess-4.0.4.jar"/>
+>>>>>>> 10bf1a33e46452262440323bd3f911a71b3ff0be
 	<classpathentry kind="output" path="bin"/>
 </classpath>
